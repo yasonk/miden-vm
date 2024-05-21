@@ -19,7 +19,10 @@ mod utils;
 pub use utils::{AuxColumnBuilder, ChipletsLengths, TraceFragment, TraceLenSummary};
 
 mod virtual_bus;
-pub use virtual_bus::{prove as prove_virtual_bus, verify as verify_virtual_bus};
+pub use virtual_bus::{
+    prove as prove_virtual_bus, verify as verify_virtual_bus, EqFunction, FinalOpeningClaim,
+    GkrCircuitProof,
+};
 
 #[cfg(test)]
 mod tests;

@@ -6,7 +6,8 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-use air::{ProcessorAir, PublicInputs};
+use air::{trace::main_trace::MainTrace, ProcessorAir, PublicInputs};
+use alloc::vec::Vec;
 use core::marker::PhantomData;
 #[cfg(all(feature = "metal", target_arch = "aarch64", target_os = "macos"))]
 use miden_gpu::HashFn;
@@ -16,14 +17,14 @@ use processor::{
         RpxRandomCoin, WinterRandomCoin,
     },
     math::{Felt, FieldElement},
-    ExecutionTrace,
+    prove_virtual_bus, EqFunction, ExecutionTrace, FinalOpeningClaim,
 };
 use tracing::instrument;
-use winter_air::AuxRandElements;
+use winter_air::{AuxRandElements, LagrangeKernelRandElements};
 use winter_prover::{
     matrix::ColMatrix, ConstraintCompositionCoefficients, DefaultConstraintEvaluator,
-    DefaultTraceLde, ProofOptions as WinterProofOptions, Prover, StarkDomain, TraceInfo,
-    TracePolyTable,
+    DefaultTraceLde, ProofOptions as WinterProofOptions, Prover, ProverGkrProof, StarkDomain,
+    TraceInfo, TracePolyTable,
 };
 
 #[cfg(feature = "std")]
@@ -226,6 +227,28 @@ where
         DefaultConstraintEvaluator::new(air, aux_rand_elements, composition_coefficients)
     }
 
+    fn generate_gkr_proof<E>(
+        &self,
+        main_trace: &Self::Trace,
+        public_coin: &mut Self::RandomCoin,
+    ) -> (ProverGkrProof<Self>, LagrangeKernelRandElements<E>)
+    where
+        E: FieldElement<BaseField = Self::BaseField>,
+    {
+        let mut log_up_randomness: Vec<E> = Vec::new();
+        log_up_randomness.push(public_coin.draw().unwrap());
+        let trace = MainTrace::new(main_trace.main_segment().clone());
+        let proof = prove_virtual_bus(&trace, log_up_randomness.clone(), public_coin).unwrap();
+
+        let FinalOpeningClaim {
+            eval_point,
+            openings: _,
+        } = proof.get_final_opening_claim();
+
+        let lag_rand = LagrangeKernelRandElements::new(eval_point);
+        ((), lag_rand)
+    }
+
     fn build_aux_trace<E>(
         &self,
         trace: &Self::Trace,
@@ -234,6 +257,20 @@ where
     where
         E: FieldElement<BaseField = Self::BaseField>,
     {
-        trace.build_aux_trace(aux_rand_elements.rand_elements()).unwrap()
+        let lag_rand = aux_rand_elements.lagrange().unwrap();
+        let lag_kernel = EqFunction::new(lag_rand.as_ref().to_vec());
+
+        let column: Vec<E> = trace
+            .main_segment()
+            .get_column(0)
+            .iter()
+            .map(|row_val| E::from(*row_val))
+            .collect();
+
+        let mut aux_trace = Vec::new();
+        aux_trace.push(column);
+        aux_trace.push(lag_kernel.evaluations());
+
+        ColMatrix::new(aux_trace)
     }
 }

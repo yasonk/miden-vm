@@ -91,7 +91,8 @@ pub const HASHER_AUX_TRACE_WIDTH: usize = 1;
 pub const HASHER_AUX_TRACE_RANGE: Range<usize> =
     range(HASHER_AUX_TRACE_OFFSET, HASHER_AUX_TRACE_WIDTH);
 
-pub const AUX_TRACE_WIDTH: usize = CHIPLETS_AUX_TRACE_RANGE.end;
+//pub const AUX_TRACE_WIDTH: usize = CHIPLETS_AUX_TRACE_RANGE.end;
+pub const AUX_TRACE_WIDTH: usize = 2;
 
 /// Number of random elements available to the prover after the commitment to the main trace
 /// segment.

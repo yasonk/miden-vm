@@ -31,7 +31,7 @@ pub const NUM_AUX_ASSERTIONS: usize = 2;
 /// The number of transition constraints required by multiset checks for the Range Checker.
 pub const NUM_AUX_CONSTRAINTS: usize = 1;
 /// The degrees of the Range Checker's auxiliary column constraints, used for multiset checks.
-pub const AUX_CONSTRAINT_DEGREES: [usize; NUM_AUX_CONSTRAINTS] = [9];
+pub const AUX_CONSTRAINT_DEGREES: [usize; NUM_AUX_CONSTRAINTS] = [1];
 
 // BOUNDARY CONSTRAINTS
 // ================================================================================================

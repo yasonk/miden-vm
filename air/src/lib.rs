@@ -101,7 +101,8 @@ impl Air for ProcessorAir {
         let num_main_assertions = 2 + stack::NUM_ASSERTIONS + range::NUM_ASSERTIONS;
 
         // Define the number of boundary constraints for the auxiliary execution trace segment.
-        let num_aux_assertions = stack::NUM_AUX_ASSERTIONS + range::NUM_AUX_ASSERTIONS;
+        //let num_aux_assertions = stack::NUM_AUX_ASSERTIONS + range::NUM_AUX_ASSERTIONS;
+        let num_aux_assertions = 1;
 
         // Create the context and set the number of transition constraint exemptions to two; this
         // allows us to inject random values into the last row of the execution trace.
@@ -111,7 +112,7 @@ impl Air for ProcessorAir {
             aux_degrees,
             num_main_assertions,
             num_aux_assertions,
-            None,
+            Some(1),
             options,
         )
         .set_num_transition_exemptions(2);
@@ -166,37 +167,37 @@ impl Air for ProcessorAir {
 
     fn get_aux_assertions<E: FieldElement<BaseField = Self::BaseField>>(
         &self,
-        aux_rand_elements: &[E],
+        _aux_rand_elements: &[E],
     ) -> Vec<Assertion<E>> {
-        let mut result: Vec<Assertion<E>> = Vec::new();
+        //let mut result: Vec<Assertion<E>> = Vec::new();
 
-        // --- set assertions for the first step --------------------------------------------------
+        //// --- set assertions for the first step --------------------------------------------------
 
-        // add initial assertions for the stack's auxiliary columns.
-        stack::get_aux_assertions_first_step(
-            &mut result,
-            aux_rand_elements,
-            self.stack_inputs.values(),
-        );
+        //// add initial assertions for the stack's auxiliary columns.
+        //stack::get_aux_assertions_first_step(
+            //&mut result,
+            //aux_rand_elements,
+            //self.stack_inputs.values(),
+        //);
 
-        // Add initial assertions for the range checker's auxiliary columns.
-        range::get_aux_assertions_first_step::<E>(&mut result);
+        //// Add initial assertions for the range checker's auxiliary columns.
+        //range::get_aux_assertions_first_step::<E>(&mut result);
 
-        // --- set assertions for the last step ---------------------------------------------------
-        let last_step = self.last_step();
+        //// --- set assertions for the last step ---------------------------------------------------
+        //let last_step = self.last_step();
 
-        // add the stack's auxiliary column assertions for the last step.
-        stack::get_aux_assertions_last_step(
-            &mut result,
-            aux_rand_elements,
-            &self.stack_outputs,
-            last_step,
-        );
+        //// add the stack's auxiliary column assertions for the last step.
+        //stack::get_aux_assertions_last_step(
+            //&mut result,
+            //aux_rand_elements,
+            //&self.stack_outputs,
+            //last_step,
+        //);
 
-        // Add the range checker's auxiliary column assertions for the last step.
-        range::get_aux_assertions_last_step::<E>(&mut result, last_step);
+        //// Add the range checker's auxiliary column assertions for the last step.
+        //range::get_aux_assertions_last_step::<E>(&mut result, last_step);
 
-        result
+        vec![Assertion::single(0, 0, E::ZERO)]
     }
 
     // TRANSITION CONSTRAINTS
@@ -237,17 +238,17 @@ impl Air for ProcessorAir {
 
     fn evaluate_aux_transition<F, E>(
         &self,
-        main_frame: &EvaluationFrame<F>,
-        aux_frame: &EvaluationFrame<E>,
+        _main_frame: &EvaluationFrame<F>,
+        _aux_frame: &EvaluationFrame<E>,
         _periodic_values: &[F],
-        aux_rand_elements: &[E],
-        result: &mut [E],
+        _aux_rand_elements: &[E],
+        _result: &mut [E],
     ) where
         F: FieldElement<BaseField = Felt>,
         E: FieldElement<BaseField = Felt> + ExtensionOf<F>,
     {
-        // --- range checker ----------------------------------------------------------------------
-        range::enforce_aux_constraints::<F, E>(main_frame, aux_frame, aux_rand_elements, result);
+        //// --- range checker ----------------------------------------------------------------------
+        //range::enforce_aux_constraints::<F, E>(main_frame, aux_frame, aux_rand_elements, result);
     }
 
     fn context(&self) -> &AirContext<Felt> {

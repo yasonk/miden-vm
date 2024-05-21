@@ -22,12 +22,13 @@
 //! [2]: https://eprint.iacr.org/2023/1284
 
 mod circuit;
-pub use circuit::{prove, verify};
+pub use circuit::{prove, verify, GkrCircuitProof};
 
 mod multilinear;
+pub use multilinear::EqFunction;
 
 mod sum_check;
-pub use sum_check::{SumCheckProver, SumCheckVerifier};
+pub use sum_check::{SumCheckProver, SumCheckVerifier, FinalOpeningClaim};
 
 mod univariate;
 

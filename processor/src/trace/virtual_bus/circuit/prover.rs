@@ -241,7 +241,7 @@ impl<E: FieldElement> CircuitInputs<E> {
 /// a [`FinalOpeningClaim`]. This latter claim will be proven by the STARK prover later on using
 /// the auxiliary trace.
 pub fn prove<
-    E: FieldElement<BaseField = Felt> + 'static,
+    E: FieldElement<BaseField = Felt>,
     C: RandomCoin<Hasher = H, BaseField = Felt>,
     H: ElementHasher<BaseField = Felt>,
 >(
@@ -292,7 +292,7 @@ pub fn prove<
 
 /// Proves the final GKR layer which corresponds to the input circuit layer.
 fn prove_final_circuit_layer<
-    E: FieldElement<BaseField = Felt> + 'static,
+    E: FieldElement<BaseField = Felt>,
     C: RandomCoin<Hasher = H, BaseField = Felt>,
     H: ElementHasher<BaseField = Felt>,
 >(
@@ -355,7 +355,7 @@ fn prove_final_circuit_layer<
 
 /// Proves all GKR layers except for input layer.
 fn prove_before_final_circuit_layers<
-    E: FieldElement<BaseField = Felt> + 'static,
+    E: FieldElement<BaseField = Felt>,
     C: RandomCoin<Hasher = H, BaseField = Felt>,
     H: ElementHasher<BaseField = Felt>,
 >(
@@ -429,7 +429,7 @@ fn prove_before_final_circuit_layers<
 /// Runs the first sum-check prover for the input layer.
 #[allow(clippy::type_complexity)]
 fn sum_check_prover_plain_partial<
-    E: FieldElement<BaseField = Felt> + 'static,
+    E: FieldElement<BaseField = Felt>,
     C: RandomCoin<Hasher = H, BaseField = Felt>,
     H: ElementHasher<BaseField = Felt>,
 >(
@@ -458,7 +458,7 @@ fn sum_check_prover_plain_partial<
 
 /// Runs the sum-check prover used in all but the input layer.
 fn sum_check_prover_plain_full<
-    E: FieldElement<BaseField = Felt> + 'static,
+    E: FieldElement<BaseField = Felt>,
     C: RandomCoin<Hasher = H, BaseField = Felt>,
     H: ElementHasher<BaseField = Felt>,
 >(
