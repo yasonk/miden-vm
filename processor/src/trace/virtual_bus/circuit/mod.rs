@@ -20,7 +20,7 @@ use super::sum_check::{FinalOpeningClaim, Proof as SumCheckProof};
 
 /// Defines the number of elements for the partial left/right numerator/denominators of
 /// [`LayerGatesInputs`].
-const NUM_ELEMENTS_PER_GATE_INPUT: usize = 4;
+const NUM_ELEMENTS_PER_GATE_INPUT: usize = 32;
 const_assert!(NUM_ELEMENTS_PER_GATE_INPUT.is_power_of_two());
 
 /// Holds the contribution of one main trace row to the input layer's gates inputs.
@@ -56,7 +56,40 @@ impl<E: FieldElement> LayerGatesInputs<E> {
             (E::ONE - op_bit_4) * (E::ONE - op_bit_5) * op_bit_6
         };
 
-        [query[M_COL_IDX], f_m, f_m, f_rc]
+        [
+            query[M_COL_IDX],
+            f_m,
+            f_m,
+            f_rc,
+            query[M_COL_IDX],
+            f_m,
+            f_m,
+            f_rc,
+            query[M_COL_IDX],
+            f_m,
+            f_m,
+            f_rc,
+            query[M_COL_IDX],
+            f_m,
+            f_m,
+            f_rc,
+            query[M_COL_IDX],
+            f_m,
+            f_m,
+            f_rc,
+            query[M_COL_IDX],
+            f_m,
+            f_m,
+            f_rc,
+            query[M_COL_IDX],
+            f_m,
+            f_m,
+            f_rc,
+            query[M_COL_IDX],
+            f_m,
+            f_m,
+            f_rc,
+        ]
     }
 
     fn right_numerator(query: &[E]) -> [E; NUM_ELEMENTS_PER_GATE_INPUT] {
@@ -71,7 +104,11 @@ impl<E: FieldElement> LayerGatesInputs<E> {
         let padding = E::ZERO;
 
         // the last numerator/denominator pair is unused, so is padded with 0 and 1, respectively.
-        [f_rc, f_rc, f_rc, padding]
+        [
+            f_rc, f_rc, f_rc, padding, f_rc, f_rc, f_rc, padding, f_rc, f_rc, f_rc, padding, f_rc,
+            f_rc, f_rc, padding, f_rc, f_rc, f_rc, padding, f_rc, f_rc, f_rc, padding, f_rc, f_rc,
+            f_rc, padding, f_rc, f_rc, f_rc, padding,
+        ]
     }
 
     fn left_denominator(query: &[E], log_up_randomness: &[E]) -> [E; NUM_ELEMENTS_PER_GATE_INPUT] {
@@ -82,7 +119,40 @@ impl<E: FieldElement> LayerGatesInputs<E> {
         let memory_denom_1 = -(alphas[0] - query[MEMORY_D1_COL_IDX]);
         let stack_value_denom_0 = -(alphas[0] - query[DECODER_USER_OP_HELPERS_OFFSET]);
 
-        [table_denom, memory_denom_0, memory_denom_1, stack_value_denom_0]
+        [
+            table_denom,
+            memory_denom_0,
+            memory_denom_1,
+            stack_value_denom_0,
+            table_denom,
+            memory_denom_0,
+            memory_denom_1,
+            stack_value_denom_0,
+            table_denom,
+            memory_denom_0,
+            memory_denom_1,
+            stack_value_denom_0,
+            table_denom,
+            memory_denom_0,
+            memory_denom_1,
+            stack_value_denom_0,
+            table_denom,
+            memory_denom_0,
+            memory_denom_1,
+            stack_value_denom_0,
+            table_denom,
+            memory_denom_0,
+            memory_denom_1,
+            stack_value_denom_0,
+            table_denom,
+            memory_denom_0,
+            memory_denom_1,
+            stack_value_denom_0,
+            table_denom,
+            memory_denom_0,
+            memory_denom_1,
+            stack_value_denom_0,
+        ]
     }
 
     fn right_denominator(query: &[E], log_up_randomness: &[E]) -> [E; NUM_ELEMENTS_PER_GATE_INPUT] {
@@ -95,7 +165,40 @@ impl<E: FieldElement> LayerGatesInputs<E> {
         let padding = E::ONE;
 
         // the last numerator/denominator pair is unused, so is padded with 0 and 1, respectively.
-        [stack_value_denom_1, stack_value_denom_2, stack_value_denom_3, padding]
+        [
+            stack_value_denom_1,
+            stack_value_denom_2,
+            stack_value_denom_3,
+            padding,
+            stack_value_denom_1,
+            stack_value_denom_2,
+            stack_value_denom_3,
+            padding,
+            stack_value_denom_1,
+            stack_value_denom_2,
+            stack_value_denom_3,
+            padding,
+            stack_value_denom_1,
+            stack_value_denom_2,
+            stack_value_denom_3,
+            padding,
+            stack_value_denom_1,
+            stack_value_denom_2,
+            stack_value_denom_3,
+            padding,
+            stack_value_denom_1,
+            stack_value_denom_2,
+            stack_value_denom_3,
+            padding,
+            stack_value_denom_1,
+            stack_value_denom_2,
+            stack_value_denom_3,
+            padding,
+            stack_value_denom_1,
+            stack_value_denom_2,
+            stack_value_denom_3,
+            padding,
+        ]
     }
 }
 
