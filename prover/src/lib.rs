@@ -246,6 +246,8 @@ where
         } = proof.get_final_opening_claim();
 
         let lag_rand = LagrangeKernelRandElements::new(eval_point);
+
+        // TODO: return `proof` once Air::GkrProof is of the correct type i.e., `GkrCircuitProof`
         ((), lag_rand)
     }
 
@@ -260,6 +262,7 @@ where
         let lag_rand = aux_rand_elements.lagrange().unwrap();
         let lag_kernel = EqFunction::new(lag_rand.as_ref().to_vec());
 
+        // TODO: should be built using main trace columns and a random value lambda 
         let column: Vec<E> = trace
             .main_segment()
             .get_column(0)
