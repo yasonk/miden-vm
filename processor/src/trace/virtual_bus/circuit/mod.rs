@@ -20,6 +20,7 @@ use super::sum_check::{FinalOpeningClaim, Proof as SumCheckProof};
 
 /// Defines the number of elements for the partial left/right numerator/denominators of
 /// [`LayerGatesInputs`].
+//const NUM_ELEMENTS_PER_GATE_INPUT: usize = 32;
 const NUM_ELEMENTS_PER_GATE_INPUT: usize = 4;
 const_assert!(NUM_ELEMENTS_PER_GATE_INPUT.is_power_of_two());
 
@@ -106,7 +107,7 @@ impl<E: FieldElement> LayerGatesInputs<E> {
         // the last numerator/denominator pair is unused, so is padded with 0 and 1, respectively.
         [
             f_rc, f_rc, f_rc, padding,
-             //f_rc, f_rc, f_rc, padding, f_rc, f_rc, f_rc, padding, f_rc,
+            //f_rc, f_rc, f_rc, padding, f_rc, f_rc, f_rc, padding, f_rc,
             //f_rc, f_rc, padding, f_rc, f_rc, f_rc, padding, f_rc, f_rc, f_rc, padding, f_rc, f_rc,
             //f_rc, padding, f_rc, f_rc, f_rc, padding,
         ]
