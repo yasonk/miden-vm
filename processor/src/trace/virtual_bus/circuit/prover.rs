@@ -1,7 +1,7 @@
 use super::{
     super::sum_check::Proof as SumCheckProof, compute_input_layer_wires_at_main_trace_query,
-    error::ProverError, BeforeFinalLayerProof, CircuitWire, FinalLayerProof, GkrCircuitProof,
-    GkrClaim, GkrComposition, GkrCompositionMerge, NUM_WIRES_PER_TRACE_ROW,
+    error::ProverError, BeforeFinalLayerProof, CircuitWire, GkrCircuitProof, GkrClaim,
+    GkrComposition, NUM_WIRES_PER_TRACE_ROW,
 };
 use crate::trace::virtual_bus::{
     multilinear::{EqFunction, MultiLinearPoly},
@@ -281,19 +281,8 @@ pub fn prove<
     let mut circuit = EvaluatedCircuit::new(&main_trace_columns, &log_up_randomness)?;
 
     // run the GKR prover for all layers except the input layer
-    let (before_final_layer_proofs, gkr_claim) =
+    let (before_final_layer_proofs, _gkr_claim) =
         prove_before_final_circuit_layers(&mut circuit, transcript)?;
-
-    // run the GKR prover for the input layer
-    let num_rounds_before_merge = NUM_WIRES_PER_TRACE_ROW.ilog2() as usize - 1;
-    let final_layer_proof = prove_final_circuit_layer(
-        log_up_randomness,
-        main_trace_columns,
-        num_rounds_before_merge,
-        gkr_claim,
-        &mut circuit,
-        transcript,
-    )?;
 
     // include the circuit output as part of the final proof
     let circuit_outputs = circuit.output_layer();
@@ -301,68 +290,6 @@ pub fn prove<
     Ok(GkrCircuitProof {
         circuit_outputs: circuit_outputs.clone(),
         before_final_layer_proofs,
-        final_layer_proof,
-    })
-}
-
-/// Proves the final GKR layer which corresponds to the input circuit layer.
-fn prove_final_circuit_layer<
-    E: FieldElement<BaseField = Felt>,
-    C: RandomCoin<Hasher = H, BaseField = Felt>,
-    H: ElementHasher<BaseField = Felt>,
->(
-    log_up_randomness: Vec<E>,
-    mut mls: Vec<MultiLinearPoly<E>>,
-    num_rounds_merge: usize,
-    gkr_claim: GkrClaim<E>,
-    circuit: &mut EvaluatedCircuit<E>,
-    transcript: &mut C,
-) -> Result<FinalLayerProof<E>, ProverError> {
-    // parse the [GkrClaim] resulting from the previous GKR layer
-    let GkrClaim {
-        evaluation_point,
-        claimed_evaluation,
-    } = gkr_claim;
-
-    // compute the EQ function at the evaluation point
-    let poly_x = EqFunction::ml_at(evaluation_point.clone());
-
-    // get the multi-linears of the 4 merge polynomials
-    let layer = circuit.get_layer(0);
-    let (left_numerators, right_numerators) = layer.numerators.project_least_significant_variable();
-    let (left_denominators, right_denominators) =
-        layer.denominators.project_least_significant_variable();
-    let mut merged_mls =
-        vec![left_numerators, right_numerators, left_denominators, right_denominators, poly_x];
-    // run the first sum-check protocol
-    let ((round_claim, before_merge_proof), r_sum_check) = sum_check_prover_plain_partial(
-        claimed_evaluation,
-        num_rounds_merge,
-        &mut merged_mls,
-        transcript,
-    )?;
-
-    // parse the output of the first sum-check protocol
-    let RoundClaim {
-        eval_point: rand_merge,
-        claim,
-    } = round_claim;
-
-    // create the composed multi-linear for the second sum-check protocol using the randomness
-    // sampled during the first one
-    let gkr_composition = GkrCompositionMerge::new(r_sum_check, rand_merge, log_up_randomness);
-
-    // include the partially evaluated at the first sum-check randomness EQ multi-linear
-    // TODO: Find a better way than to push the evaluation of `EqFunction` here.
-    mls.push(merged_mls[4].clone());
-
-    // run the second sum-check protocol
-    let main_prover = SumCheckProver::new(gkr_composition, SimpleGkrFinalClaimBuilder(PhantomData));
-    let after_merge_proof = main_prover.prove(claim, mls, transcript)?;
-
-    Ok(FinalLayerProof {
-        before_merge_proof,
-        after_merge_proof,
     })
 }
 
@@ -398,9 +325,8 @@ fn prove_before_final_circuit_layers<
     // In a layered circuit, each layer is defined in terms of its predecessor. The first inner
     // layer (starting from the output layer) is the first layer that has a predecessor. Here, we
     // loop over all inner layers in order to iteratively reduce a layer in terms of its successor
-    // layer. Note that we don't include the input layer, since its predecessor layer will be
-    // reduced in terms of the input layer separately in `prove_final_circuit_layer`.
-    for inner_layer in circuit.layers().iter().skip(1).rev().skip(1) {
+    // layer.
+    for inner_layer in circuit.layers().iter().rev().skip(1) {
         // construct the Lagrange kernel evaluated at the previous GKR round randomness
         let poly_x = EqFunction::ml_at(rand.clone());
 

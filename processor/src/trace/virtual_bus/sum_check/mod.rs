@@ -64,7 +64,7 @@ pub fn reduce_claim<E: FieldElement>(
 /// claim on a number of oracles open to a given set of values at some given point.
 /// This question is answered either using further interaction with the Prover or using
 /// a polynomial commitment opening proof in the compiled protocol.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct FinalOpeningClaim<E> {
     pub eval_point: Vec<E>,
     pub openings: Vec<E>,

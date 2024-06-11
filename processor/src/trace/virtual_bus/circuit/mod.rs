@@ -1,7 +1,7 @@
 use core::ops::Add;
 
+use crate::trace::virtual_bus::multilinear::CompositionPolynomial;
 use crate::trace::virtual_bus::multilinear::EqFunction;
-use crate::trace::virtual_bus::{multilinear::CompositionPolynomial, sum_check::RoundProof};
 use alloc::vec::Vec;
 use miden_air::trace::chiplets::{MEMORY_D0_COL_IDX, MEMORY_D1_COL_IDX};
 use miden_air::trace::decoder::{DECODER_OP_BITS_OFFSET, DECODER_USER_OP_HELPERS_OFFSET};
@@ -19,7 +19,7 @@ mod verifier;
 pub use verifier::verify;
 
 use super::multilinear::MultiLinearPoly;
-use super::sum_check::{FinalOpeningClaim, Proof as SumCheckProof};
+use super::sum_check::Proof as SumCheckProof;
 
 /// Defines the number of wires in the input layer that are generated from a single main trace row.
 const NUM_WIRES_PER_TRACE_ROW: usize = 8;
@@ -141,26 +141,12 @@ where
 pub struct GkrCircuitProof<E: FieldElement> {
     circuit_outputs: CircuitLayerPolys<E>,
     before_final_layer_proofs: BeforeFinalLayerProof<E>,
-    final_layer_proof: FinalLayerProof<E>,
-}
-
-impl<E: FieldElement> GkrCircuitProof<E> {
-    pub fn get_final_opening_claim(&self) -> FinalOpeningClaim<E> {
-        self.final_layer_proof.after_merge_proof.openings_claim.clone()
-    }
 }
 
 /// A set of sum-check proofs for all GKR layers but for the input circuit layer.
 #[derive(Debug)]
 pub struct BeforeFinalLayerProof<E: FieldElement> {
     pub proof: Vec<SumCheckProof<E>>,
-}
-
-/// A proof for the input circuit layer i.e., the final layer in the GKR protocol.
-#[derive(Debug)]
-pub struct FinalLayerProof<E: FieldElement> {
-    before_merge_proof: Vec<RoundProof<E>>,
-    after_merge_proof: SumCheckProof<E>,
 }
 
 /// Represents a claim to be proven by a subsequent call to the sum-check protocol.

@@ -1,18 +1,14 @@
-use super::{
-    error::VerifierError, prover::CircuitLayerPolys, FinalLayerProof, GkrCircuitProof,
-    GkrComposition, GkrCompositionMerge,
-};
+use super::{error::VerifierError, prover::CircuitLayerPolys, GkrCircuitProof, GkrComposition};
 use crate::trace::virtual_bus::{
     multilinear::EqFunction,
-    sum_check::{
-        CompositionPolyQueryBuilder, FinalOpeningClaim, Proof as SumCheckFullProof, RoundClaim,
-    },
+    sum_check::{CompositionPolyQueryBuilder, FinalOpeningClaim, Proof as SumCheckFullProof},
     SumCheckVerifier,
 };
 use alloc::{borrow::ToOwned, vec::Vec};
 use vm_core::{Felt, FieldElement};
 use winter_prover::crypto::{ElementHasher, RandomCoin};
 
+// TODO: Return FinalOpeningClaim
 /// Verifies the validity of a GKR proof for the correct evaluation of a fractional sum circuit.
 pub fn verify<
     E: FieldElement<BaseField = Felt>,
@@ -21,13 +17,12 @@ pub fn verify<
 >(
     claim: E,
     proof: GkrCircuitProof<E>,
-    log_up_randomness: Vec<E>,
+    _log_up_randomness: Vec<E>,
     transcript: &mut C,
-) -> Result<FinalOpeningClaim<E>, VerifierError> {
+) -> Result<(), VerifierError> {
     let GkrCircuitProof {
         circuit_outputs,
         before_final_layer_proofs,
-        final_layer_proof,
     } = proof;
 
     let CircuitLayerPolys {
@@ -91,15 +86,7 @@ pub fn verify<
         rand = ext;
     }
 
-    // verify the proof of the final GKR layer and pass final opening claim for verification
-    // to the STARK
-    verify_sum_check_proof_last(
-        final_layer_proof,
-        log_up_randomness,
-        &rand,
-        reduced_claim,
-        transcript,
-    )
+    Ok(())
 }
 
 /// Verifies sum-check proofs, as part of the GKR proof, for all GKR layers except for the last one
@@ -127,51 +114,6 @@ pub fn verify_sum_check_proof_before_last<
         SumCheckVerifier::new(composition_poly, GkrQueryBuilder::new(gkr_eval_point.to_owned()));
     verifier
         .verify(reduced_claim, proof.clone(), transcript)
-        .map_err(VerifierError::FailedToVerifySumCheck)
-}
-
-/// Verifies the final sum-check proof as part of the GKR proof.
-pub fn verify_sum_check_proof_last<
-    E: FieldElement<BaseField = Felt>,
-    C: RandomCoin<Hasher = H, BaseField = Felt>,
-    H: ElementHasher<BaseField = Felt>,
->(
-    proof: FinalLayerProof<E>,
-    log_up_randomness: Vec<E>,
-    gkr_eval_point: &[E],
-    claim: (E, E),
-    transcript: &mut C,
-) -> Result<FinalOpeningClaim<E>, VerifierError> {
-    let FinalLayerProof {
-        before_merge_proof,
-        after_merge_proof,
-    } = proof;
-
-    // generate challenge to batch sum-checks
-    transcript.reseed(H::hash_elements(&[claim.0, claim.1]));
-    let r_sum_check: E = transcript.draw().map_err(|_| VerifierError::FailedToGenerateChallenge)?;
-
-    // compute the claim for the batched sum-check
-    let reduced_claim = claim.0 + claim.1 * r_sum_check;
-
-    // verify the first part of the sum-check protocol
-    let composition_poly = GkrComposition::new(r_sum_check);
-    let verifier =
-        SumCheckVerifier::new(composition_poly, GkrQueryBuilder::new(gkr_eval_point.to_owned()));
-    let RoundClaim {
-        eval_point: rand_merge,
-        claim,
-    } = verifier.verify_rounds(reduced_claim, before_merge_proof, transcript)?;
-
-    // verify the second part of the sum-check protocol
-    let gkr_composition =
-        GkrCompositionMerge::new(r_sum_check, rand_merge.clone(), log_up_randomness);
-    let verifier = SumCheckVerifier::new(
-        gkr_composition,
-        GkrMergeQueryBuilder::new(gkr_eval_point.to_owned(), rand_merge),
-    );
-    verifier
-        .verify(claim, after_merge_proof, transcript)
         .map_err(VerifierError::FailedToVerifySumCheck)
 }
 
