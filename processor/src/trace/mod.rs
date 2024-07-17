@@ -333,7 +333,8 @@ where
     // inject random values into the last rows of the trace
     for i in trace_len - NUM_RAND_ROWS..trace_len {
         for column in trace.iter_mut() {
-            column[i] = rng.draw().expect("failed to draw a random value");
+            //column[i] = rng.draw().expect("failed to draw a random value");
+            column[i] = Felt::ZERO;
         }
     }
 
