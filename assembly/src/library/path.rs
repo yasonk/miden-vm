@@ -32,6 +32,13 @@ pub enum PathError {
     UnsupportedJoin,
 }
 
+#[cfg(feature = "std")]
+impl From<PathError> for std::io::Error {
+    fn from(e: PathError) -> Self {
+        std::io::Error::new(std::io::ErrorKind::Other, e)
+    }
+}
+
 // LIBRARY PATH COMPONENT
 // ================================================================================================
 
